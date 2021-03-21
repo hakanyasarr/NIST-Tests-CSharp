@@ -1,0 +1,177 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ApproximateEntropyTest
+{
+    class Program
+    {
+        /*
+        As with the Serial test of Section 2.11, the focus of this test is the frequency of all possible overlapping
+m-bit patterns across the entire sequence. The purpose of the test is to compare the frequency of
+overlapping blocks of two consecutive/adjacent lengths (m and m+1) against the expected result for a
+random sequence. 
+
+            input : input sequence (string type)(epsilonInput) that we want to test
+                    input m (int type) . The length of each block – in this case, the first block length used in the test. m+1 is the
+                        second block length used. 
+
+            output : P-Value that will help us to decide the sequence is random or not
+
+    */
+        static void Main()
+        {
+
+            ClassTakeInputs.MethodTakeInputs();
+            return;
+        }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ApproximateEntropyTest
+{
+    class ClassTakeInputs
+    {
+        public static void MethodTakeInputs()
+        {
+
+            string epsilonInput = "0100110101";
+            int m = 3;
+            int n = epsilonInput.Length;
+
+            List<int> inputList = new List<int>();
+
+            for (int i = 0; i < n; i++)
+            {
+                if (epsilonInput[i] == '1')
+                    inputList.Add(1);
+                else if (epsilonInput[i] == '0')
+                    inputList.Add(0);
+                else
+                    Console.WriteLine("Wrong input data. Input sequence have to be collection of 1 and 0");
+            }
+
+            for (int j = 0; j < m - 1; j++)
+            {
+                inputList.Add(inputList[j]);
+            }
+
+
+            ClassProcess.MethodProcess(inputList, m, n);
+            return;
+        }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ApproximateEntropyTest
+{
+    class ClassProcess
+    {
+        public static void MethodProcess(List<int> inputList, int m, int n)
+        {
+            List<float> frequencyIntensityList = new List<float>();                 // This list will record Ci Values
+            frequencyIntensityList = ClassFrequencyCalculator.MethodFrequencyCalculator(inputList, m, n);
+            double fiValue;
+            fiValue = ClassCalculateFi.MethodCalculateFi(frequencyIntensityList);
+
+            // Now repeat process but put m+1 instead of m
+
+            inputList.Add(inputList[m - 1]);
+            List<float> frequencyIntensityList2 = new List<float>();
+            frequencyIntensityList2 = ClassFrequencyCalculator.MethodFrequencyCalculator(inputList, m+1 , n);
+            double fiValue2;
+            fiValue2 = ClassCalculateFi.MethodCalculateFi(frequencyIntensityList2);
+
+
+            double apEnM = fiValue - fiValue2 ;
+            double xSqr = 2 * n * (Math.Log(2) - apEnM);
+
+            double gammaValue, gammaValue2 ;
+            double gammaInput = Math.Pow(2, (double)m - 1);
+         
+            double gammaInput2 = xSqr / 2;
+            gammaValue = ClassGama.IncompleteGamma(gammaInput);
+
+            gammaValue2 = ClassIncompleteGama.incgamma(gammaInput2, gammaInput);
+ 
+            gammaValue = (float)gammaValue2 / (float)gammaValue;
+            gammaValue = 1 - gammaValue;
+
+            Console.WriteLine("P-Value is equal to " + gammaValue);
+            if (gammaValue < 0.01)
+                Console.WriteLine("Since P-Value is smaller than 0.01 then the input sequence is not random ");
+            else
+                Console.WriteLine("Since P-Value is bigger than or equal to 0.01 then the input sequence is random ");
+
+
+
+
+
+
+            return;
+        }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ApproximateEntropyTest
+{
+    class ClassFrequencyCalculator
+    {
+        public static List<float> MethodFrequencyCalculator(List<int> inputList, int m, int n)
+        {
+            List<int> inputList2 = new List<int>();
+            List<int> frequencyList = new List<int>();
+            List<float> frequencyIntensityList = new List<float>();
+            int count;
+
+            for (int i = 0; i < inputList.Count; i++)
+                inputList2.Add(inputList[i]);
+            int maxValue = (int)Math.Pow(2, m) - 1;                               // it will store  max value of the m bit binary number
+
+
+            int value;                              // any m bit value in input list
+            for (int x = 0; x <= maxValue; x++)
+            {
+                count = 0;
+                for (int k = 0; k <= inputList.Count - m; k++)
+                {
+                    value = 0;
+                    for (int a = 0; a < m; a++)
+                    {
+                        value = value + (int)Math.Pow(2, m - 1 - a) * inputList2[k + a];
+                    }
+                    if (value == x)
+                        count = count + 1;
+                }
+                frequencyList.Add(count + 0);
+            }
+            // Now frequencyList hold all frequencies , let start to find  C = frequency / n
+
+            for( int b = 0 ; b<frequencyList.Count ; b++)
+            {
+                frequencyIntensityList.Add((float)frequencyList[b] / (float)n);
+            }
+
+
+            return frequencyIntensityList;
+        }
+    }
+}
+
