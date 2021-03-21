@@ -1,0 +1,140 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace RunsTest
+{
+    class Program
+    {
+        /*
+        The focus of this test is the total number of runs in the sequence, where a run is an uninterrupted sequence
+of identical bits. A run of length k consists of exactly k identical bits and is bounded before and after with
+a bit of the opposite value.The purpose of the runs test is to determine whether the number of runs of
+2-5 A STATISTICAL TEST SUITE FOR RANDOM AND PSEUDORANDOM NUMBER GENERATORS FOR CRYPTOGRAPHIC APPLICATIONS
+ones and zeros of various lengths is as expected for a random sequence.In particular, this test determines
+whether the oscillation between such zeros and ones is too fast or too slow.
+        
+        input : In this test , there is one input (epsilonInput). epsilon input is the sequence ( consist of ones and zeros ) that we want to test for randomness
+
+        output : Output is P-Values. P-Values will help us to decide the sequence is random or not.
+                  if P-Value is smaller tha 0.01 , then the sequence is not random. Otherwise the sequence is random.
+*/
+
+        static void Main( )
+        {
+
+            ClassTakeInputs.MethodTakeInputs();
+            return;
+        }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace RunsTest
+{
+    class ClassTakeInputs
+    {
+        // This class take input (strng type )(epsilon input) and record the element of the epsilonInput to the inputList (int type)
+        // This class also evaluate some necessary parameters like tao
+        // Finally decide this test is applicable or not for this sequence. If not applicable, the return to the main function without any action
+        public static void MethodTakeInputs()
+        {
+            string epsilonInput = ("1100100100001111110110101010001000100001011010001100001000110100110001001100011001100010100010111000");                   // The input sequence (epsilonInput) (string type) that we want to test for randomness
+
+            int n = epsilonInput.Length ;                         // the number of elements in input (epsilonInput). In other words, input size
+            float tao = 2 / (float)Math.Sqrt(n);                    // tao = 2 / Sqrt (n)  . tao will help us to decide continue to the test or not
+       
+            List<int> inputList = new List<int>();              // This list will hold the elements of the epsilonInput as integers (as 1 or 0 )
+            for (int i = 0; i < n; i++)                         // This for record the elements in epsilonInput to the inputList
+            {
+                if (epsilonInput[i] == '1')
+                    inputList.Add(1);
+                else if (epsilonInput[i] == '0')
+                    inputList.Add(0);
+                else
+                    Console.WriteLine("Wrong input data, input member can be zero or one");
+            }
+
+            float preTestProportion;                                // it is the intensity of ones in input sequence
+            int numberofOnes =0 ;                                    // it will hold the total number of ones in sequence
+            for (int j = 0; j < inputList.Count; j++)                // This for is calculating the total number of ones (record it to the numberofOnes to evaluate Pre Test Proportion
+            {
+                if (inputList[j] == 1)
+                    numberofOnes = numberofOnes + 1;
+            }
+
+            preTestProportion = (float)numberofOnes / (float)n;     // This equation calculate Pre Test Proportion    
+            
+            // Now we will calculate  | preTestProportion -(1/2)|     
+
+            double preTestProportion2 = preTestProportion - 0.5 ;
+   
+            if (preTestProportion2 < 0)
+                preTestProportion2 = preTestProportion2 * (-1);
+
+            if (preTestProportion2 >= tao )                         // is is decideing unit that decide the test is necessary or not for the input sequence
+            {
+                double pValue;
+                pValue = 0;
+                Console.WriteLine("Runs test need not be performed and pValue is     " +pValue);
+                return;
+            }
+            ClassProcess.MethodProcess(inputList, preTestProportion, n);
+            return;
+            }
+        }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace RunsTest
+{
+    class ClassProcess
+    {
+        // This class is calculate P-Value. Then , P-Value will help us to decide the input sequence is random or not
+        public static void MethodProcess(List<int> inputList,float preTestProportion, int n)
+        {
+
+            // Lets star with computing test statistics
+            // Compute the test statistic V ( obs) = ∑r( k )+ 1 , where r(k)=0 if εk=εk+1, and r(k)=1 otherwise. 
+
+            int vnObs;
+            int numberofChanges = 0;                           //it will hold the number of changes between bits 
+            for (int k = 0; k < inputList.Count - 1; k++)
+            {
+                if (inputList[k] != inputList[k + 1])
+                    numberofChanges = numberofChanges + 1;
+            }
+            numberofChanges = numberofChanges + 1;                //numberof Ones is also a sum 
+            vnObs = numberofChanges;                                // Now we evaluate test statistics (vnOns)
+
+            // Let's start compute P-Value
+            // P-value = erfc( | V (obs) − 2nπ (1−π ) | / 2 2nπ (1−π ) )
+            double pValue;
+            double pValue2;
+            pValue = vnObs - 2 * n * preTestProportion * (1 - preTestProportion);
+            pValue = Math.Abs(pValue);
+            pValue2 = 2 * preTestProportion * (1 - preTestProportion) * Math.Sqrt(2 * n);
+            pValue = pValue / pValue2;
+            pValue = 1 - ClassErrorFunction.MethodErrorFunction(pValue);                                // actual P-Value is evaluated at this point
+
+            Console.WriteLine("pValue is   " + pValue);
+            if (pValue >= 0.01)
+                Console.WriteLine("Since p-Value is bigger than or equal to  0.01 then the sequence is random");
+            else
+                Console.WriteLine("Since p-Value is smaller than 0.01 then the sequence is not random");
+            
+            return;
+        }
+    }
+}
+
