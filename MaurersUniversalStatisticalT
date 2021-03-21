@@ -1,0 +1,219 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace MaurersUniversalStatisticalT
+{
+    class Program
+    {
+        static void Main()
+        {
+            /*
+            The focus of this test is the number of bits between matching patterns (a measure that is related to the
+length of a compressed sequence). The purpose of the test is to detect whether or not the sequence can be
+significantly compressed without loss of information. A significantly compressible sequence is
+considered to be non-random. 
+
+            input : (3 inputs) . First input input seqeuce (named epsilonInput and type string) that we want to test
+                    Secon input is L . The focus of this test is the number of bits between matching patterns (a measure that is related to the
+                        length of a compressed sequence). The purpose of the test is to detect whether or not the sequence can be
+                        significantly compressed without loss of information. A significantly compressible sequence is
+                        considered to be non-random. 
+                    Third input is Q. The number of blocks in the initialization sequence. 
+
+            output : Output is P-Value that will help us to decide the sequence is random or not.
+ 
+
+    */
+            ClassTakeInput.MethodTakeInput();
+
+
+            return;
+        }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace MaurersUniversalStatisticalT
+{
+    class ClassTakeInput
+    {
+        public static void MethodTakeInput()
+        {
+            string epsiloninput = "01011010011101010111";           // input sequence that we want to test
+            int n = epsiloninput.Length ;                                            // size of input sequence
+            int L =2 ;                                              // the length of the each block
+            int Q =4 ;                                              // number of block in initialization segment
+
+            int K = n / L -Q  ;                                         // number of block in Test Segment
+
+            List<int> inputList = new List<int>() ;                 // the input elements will store here
+            
+            for(int i = 0 ; i < n ; i++ )
+            {
+                if (epsiloninput[i] == '1')
+                    inputList.Add(1);
+                else if (epsiloninput[i] == '0')
+                    inputList.Add(0);
+                else
+                    Console.WriteLine("wrong input data !! Input must be collection of ones and zeros ");
+            }
+            ClassProcess.MethodProcess(inputList, L, Q , n , K);
+
+
+            return;
+        }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace MaurersUniversalStatisticalT
+{
+    class ClassProcess
+    {
+        public static void MethodProcess(List<int> inputList, int L , int Q , int n , int K )
+        {
+            int index ;                                                 // This variable will hepl us to find block number of the last occurrence of each possible L-bit block
+            int values ;                                     // The decimal value of each block
+            List<int> indexListofLastOccurunceList = new List<int>();
+
+            for ( int i = 0 ; i < (int)Math.Pow(2,(double)L) ; i++ )            // This for loop calculate index of last occurunce of the all posible blocks. It is the step two
+            {
+                index = 0;
+                for( int j =0 ; j < Q * L ; j = j+L )
+                {
+                    values = 0;
+                    for( int k = 0 ; k < L ; k++ )
+                    {
+                        values = values + inputList[k + j ] * (int)Math.Pow(2, (double)L - 1 - k);
+                    }
+                    if (values == i)
+                        index = 1 + ( j / L );
+                }
+                indexListofLastOccurunceList.Add(index);
+            }
+
+            double sum = 0 ;                    // This variable will store cumilative sumin step three
+            values = 0;
+        
+            for (int a = Q * L; a < n; a = a + L)
+            {
+                index = 0;
+                for (int b = 0; b < L; b++)
+                {
+                    index = index + (int)Math.Pow(2, (int)L - 1 - b) * inputList[a + b];
+                }
+                values = indexListofLastOccurunceList[index];
+                indexListofLastOccurunceList.RemoveAt(index);
+                indexListofLastOccurunceList.Insert(index, 1 + (a / L));
+                sum = sum + Math.Log(1 + (double)a / (double)L - values) / Math.Log(2);                                            // sum = sum + log2((1+a/L) - values)
+            }
+
+            double fn = sum / (double)K;                // fn is test statistics in part 4
+            double expectedValue = 1, variance = 1;             // they are necessary constants that we will use to calculate erfc
+
+            if(L==2)
+            {
+                expectedValue = 1.5374383;
+                variance = 52.58;
+            }
+            
+            else if(L==6)
+            {
+                expectedValue = 5.2177052;
+                variance = 2.954;
+            }
+            else if (L==7)
+            {
+                expectedValue = 6.1962507;
+                variance = 3.125;
+            }
+        
+            else if (L==8)
+            {
+                expectedValue = 7.1836656;
+                variance = 3.238;
+            }
+
+            else if (L==9)
+            {
+                expectedValue = 8.1764248;
+                variance = 3.311;
+            }
+               
+            else if (L==10)
+            {
+                expectedValue = 9.1723243;
+                variance = 3.356;
+            }
+               
+            else if (L==11)
+            {
+                expectedValue = 10.170032;
+                variance = 3.384;
+            }
+               
+            else if (L==12)
+            {
+                expectedValue = 11.168765;
+                variance = 3.401;
+            }
+               
+            else if (L==13)
+            {
+                expectedValue = 12.168070;
+                variance = 3.410;
+            }
+               
+            else if (L==14)
+            {
+                expectedValue = 13.167693;
+                variance = 3.416;
+            }
+               
+            else if (L==15)
+            {
+                expectedValue = 14.167488;
+                variance = 3.419;
+            }
+                
+            else if (L==16)
+            {
+                expectedValue = 15.167379;
+                variance = 3.421;
+            }
+            
+            double c = (0.7) - (0.8 /(double) L) + (4 + 32 / (double) L) * (Math.Pow((double)K, (-3)/(double)L) / (15) );        // we will use c for calculating standart deviation
+
+            double standartDeviation;
+        /////////////////////XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX ufak bir hesaplama hatası var
+            standartDeviation = variance / K;
+            standartDeviation = Math.Sqrt(standartDeviation);
+            standartDeviation = c * standartDeviation;
+            
+            double pValue;
+            pValue = ClassErrorFunction.Erf(Math.Abs((fn - expectedValue) / (standartDeviation * Math.Sqrt(2))));
+            pValue = 1 - pValue;
+
+            Console.WriteLine("P-Value is equal to " + pValue);
+            if (pValue < 0.01)
+                Console.WriteLine("Since P-Value is smaller than 0.01 , then the sequence is not random");
+            else
+                Console.WriteLine("Since P-Value is bigger than or equal to 0.01 , then the sequence is random");
+
+
+            return;
+        }
+    }
+}
+
