@@ -1,0 +1,317 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LinearComplexityTest
+{
+    class Program
+    {
+        /*
+             The focus of this test is the length of a linear feedback shift register (LFSR). The purpose of this test is to
+        determine whether or not the sequence is complex enough to be considered random. Random sequences
+        are characterized by longer LFSRs. An LFSR that is too short implies non-randomness. 
+
+            input : input sequence (string type ) epsilonInput that we want to test
+                    M (int type) that the number of elements each block should have
+
+            output : P-Value (duble type) that will help us to decide the input sequence is random or not
+
+        */
+        
+        static void Main()
+        {
+            List<int> BD = new List<int>();
+
+            ClassTakingInputs.MethodTakingInputs();
+
+
+            return;
+        }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LinearComplexityTest
+{
+    class ClassTakingInputs
+    {
+        public static void MethodTakingInputs()
+        {
+            string epsilonInput = "110101111000111111111111111101011110001";             // input string
+            int n = epsilonInput.Length;                                    //the length of input string
+            int M = 13;                                     // the length of each block in input wstring
+
+
+            int K = 6;                                           //The number of degrees of freedom
+            int N = n / M ;                                 // Tho block number in sequence
+            
+            List<int> inputList = new List<int>();
+            for(int i = 0 ; i<n ; i++)
+            {
+                if (epsilonInput[i] == '1')
+                    inputList.Add(1);
+                else if (epsilonInput[i] == '0')
+                    inputList.Add(0);
+                else
+                    Console.WriteLine("Wrong input data that sequence of input have to be collection of 1 and 0 ");
+            }
+            ClassProcess.MethodProcess(inputList, N, M , K );
+
+            
+            return;
+        }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LinearComplexityTest
+{
+    class ClassProcess
+    {
+        public static void MethodProcess(List<int> inputList, int N , int M , int K)
+        {
+            List<int> linearComplexityListL = new List<int>();                  // it will hold linear complexities of every block
+            List<int> inputListofEachBlock = new List<int>();                   // This list will hold elements of a block to calculate Linear Complexity of that block
+            int linearComplexityValueL;                                         // Linear compelxities output for each block
+            for (int i = 0 ; i < N; i++)
+            {
+                inputListofEachBlock.Clear();
+                for(int j = 0 ; j < M ; j++)
+                {
+                    inputListofEachBlock.Add(inputList[i*M + j] );
+                }            
+                linearComplexityValueL = ClassBerlekampMasseyAlgorithm.MethodBerlekampMasseyAlgorithm(inputListofEachBlock);
+                linearComplexityListL.Add(linearComplexityValueL);
+            }
+
+            // Now, we have to calculate mean
+            double meanU;
+            int signM;                       // The sign value will help us to calculate mean by decide (-1)^M+1 is one or minus one
+            signM = M - (M / 2) * 2;         // if M is odd then sig is 1 , otherwise 0
+            if (signM == 1)
+                signM = 1;
+            else
+                signM = -1;
+            int expTwo = 1;                     // this will help us to calculate 2^M in formula
+            for (int k = 0; k < M; k++)
+                expTwo = expTwo * 2;
+
+            meanU = ((double)M / 2) + ((double)(9 + signM) / 36) - ((double)(3 * M + 2) / (9 * expTwo));
+    
+            // Now Calculate T values
+            List<double> tValuesList = new List<double>() ;
+            signM = signM * (-1) ;
+            for (int a = 0 ; a < N ; a++ )
+            {
+                tValuesList.Add(signM * (linearComplexityListL[a] - meanU) + ((double)2 / 9));
+            }
+
+            // Change   linearComplexityList according  to the vlues of T[]
+
+            for(int a = 0 ; a < N ; a++ )
+            {
+                if (tValuesList[a] <= (-2.5))
+                {
+                    linearComplexityValueL = linearComplexityListL[0];
+                    linearComplexityListL.RemoveAt(0);
+                    linearComplexityListL.Insert(0, linearComplexityValueL + 1);
+                }
+               else if ((tValuesList[a] <= (-1.5))  && (tValuesList[a] > (-2.5)))
+                {
+                    linearComplexityValueL = linearComplexityListL[1];
+                    linearComplexityListL.RemoveAt(1);
+                    linearComplexityListL.Insert(1, linearComplexityValueL + 1);
+                }
+                else if ((tValuesList[a] <= (-0.5)) && (tValuesList[a] > (-1.5)))
+                {
+                    linearComplexityValueL = linearComplexityListL[2];
+                    linearComplexityListL.RemoveAt(2);
+                    linearComplexityListL.Insert(2, linearComplexityValueL + 1);
+                }
+                else if ((tValuesList[a] <= (0.5)) && (tValuesList[a] > (-0.5)))
+                {
+                    linearComplexityValueL = linearComplexityListL[3];
+                    linearComplexityListL.RemoveAt(3);
+                    linearComplexityListL.Insert(3, linearComplexityValueL + 1);
+                }
+                else if ((tValuesList[a] <= (1.5)) && (tValuesList[a] > (0.5)))
+                {
+                    linearComplexityValueL = linearComplexityListL[4];
+                    linearComplexityListL.RemoveAt(4);
+                    linearComplexityListL.Insert(4, linearComplexityValueL + 1);
+                }
+                else if ((tValuesList[a] <= (2.5)) && (tValuesList[a] > (1.5)))
+                {
+                    linearComplexityValueL = linearComplexityListL[5];
+                    linearComplexityListL.RemoveAt(5);
+                    linearComplexityListL.Insert(5, linearComplexityValueL + 1);
+                }
+                else if (tValuesList[a] > (2.5))
+                {
+                    linearComplexityValueL = linearComplexityListL[6];
+                    linearComplexityListL.RemoveAt(6);
+                    linearComplexityListL.Insert(6, linearComplexityValueL + 1);
+                }
+            }
+
+            // Now compute X^Obs
+            List<double> preproportionalList = new List<double>();
+            preproportionalList.Add(0.010417);
+            preproportionalList.Add(0.03125);
+            preproportionalList.Add(0.125);
+            preproportionalList.Add(0.5);
+            preproportionalList.Add(0.25);
+            preproportionalList.Add(0.0625);
+            preproportionalList.Add(0.020833);
+
+            double xSqrObs = 0;
+            for( int b = 0 ; b <= K ; b++ )
+            {
+                xSqrObs = xSqrObs + (linearComplexityListL[b] - (double)N * preproportionalList[b]) * (linearComplexityListL[b] - (double)N * preproportionalList[b]) / ((double)N * preproportionalList[b]);
+            }
+
+
+            double pValue, pValue2;
+
+            pValue = ClassGamma.Gamma((double)K / 2);
+            pValue2 = ClassLowerGamma.incgamma((double)K / 2, (double)xSqrObs / 2);
+
+            pValue = (float)pValue2 / (float)pValue;                            // it is lower incomplete gamma value but we need upper incomplete gamma value.So take complement
+            pValue = 1 - pValue;                            // now we calculated P-Value
+
+
+
+            Console.WriteLine("P-Value is equal to   " + pValue);
+
+            if (pValue >= 0.01)
+            {
+                Console.WriteLine("Since pValue is bigger than or equal to 0.01 , then the process is random");
+            }
+            else
+                Console.WriteLine("Since pValue is smaller than 0.01 , then the process is not random");
+
+
+
+
+            return;
+        }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LinearComplexityTest
+{
+    class ClassBerlekampMasseyAlgorithm
+    {
+        /*        
+            This class help us to calculate Linear Complexity of a sequence.
+            This sequence is a binary sequence.
+            The return value is  Linear complexity value of sequence
+        */
+        public static int MethodBerlekampMasseyAlgorithm(List<int> inputListofEachBlock)
+        {
+            int n = inputListofEachBlock.Count();
+            int L =0, m = -1 , d  ;                                          
+            List<int> CD = new List<int>();                     // These are tree polnomial that have variables D.   C(D) = 1 + c(1)D(1) + c(2)D(2) + ...
+            CD.Add(1);
+            List<int> BD = new List<int>();
+            BD.Add(1);
+            List<int> iterationBD = new List<int>();
+            
+            List<int> TD = new List<int>();
+            int element=0;                                    // it will used any purpose when it is necessary
+
+            for ( int N =0 ; N<n ; N++ )
+            {
+                d = 0 ;   
+                for(int i =1 ; i <= L ; i++ )                               // This for loop calculate a part of discrepancy
+                {                    
+                    if ( i < CD.Count)
+                    {
+                        if (N >= i)
+                        {
+                            element = CD[i] + 0;
+                            element = inputListofEachBlock[N - i] * element;
+                        }
+                        else
+                            d = d + 0;
+          
+                    }
+                    else                    
+                        element = 0;
+                        
+                    d = d + element;
+                }
+                d = inputListofEachBlock[N] + d;
+                d = d - (d / 2) * 2 ;                           // This help us to calculate mod2 value of d
+                if (d == 1)
+                {
+                    TD.Clear();
+                    for (int j = 0; j < CD.Count; j++)            // This for loop calculate T(D) = C(D)
+                    {
+                        TD.Add(CD[j] + 0);
+                    }
+                    iterationBD.Clear();
+                    for (int k = 0; k < (N - m); k++)             // This for calculate B(D)*D^(N--m)
+                    {                       
+                        iterationBD.Add(0);  
+                    }
+                    for (int x = 0; x < BD.Count; x++)
+                        iterationBD.Add(BD[x]+0);
+                    for (int l = 0; l < iterationBD.Count; l++)                 // // This for calculate C(D) = C(D) + B(D)*D^(N--m)
+                    {
+                        if (l < CD.Count)
+                        {
+                            element = CD[l]+0;
+                            CD.RemoveAt(l);
+                            CD.Insert(l, element + iterationBD[l]);
+                            element = 0;
+                        }
+                        else
+                        {
+                            element = 0;
+                            CD.Insert(l, element + iterationBD[l]);
+                        }
+                    }
+
+
+
+                    if (L <= (N / 2))
+                    {
+                        L = N + 1 - L;
+                        m = N;
+                        BD.Clear();
+                        for (int z = 0; z < TD.Count; z++)
+                        {
+                            BD.Add(TD[z]+0);
+                        }
+                    }
+
+                }
+                
+            }
+
+     
+
+
+            return L;
+        }
+
+
+    }
+}
+
