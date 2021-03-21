@@ -1,0 +1,206 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BinaryMatrixRankTest
+{
+    /*
+    The focus of the test is the rank of disjoint sub-matrices of the entire sequence. The purpose of this test is
+to check for linear dependence among fixed length substrings of the original sequence. 
+    
+        inputs : (3 inputs) . One is input sequence (epsilonInput)(string type).
+                  Second input is M. M represent the number of rows in each matrix
+                  Third input is N. N represent the number of column in each matrix
+
+        output : (1 output). Output is P-Value of sequence that will help us to decide the sequence is random or not
+    */ 
+    class Program
+    {
+        static void Main()
+        {
+            ClassTakeandProcessInput.MethodTakeandProcessInput();
+            return;
+        }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BinaryMatrixRankTest
+{
+    class ClassTakeandProcessInput
+    {
+        public static void MethodTakeandProcessInput()
+        {         
+            string epsilonInput = "01011001001010101101";                 // input sequence that we want to test         
+            int M = 3 ;                                     // The number of row in each matrix
+            int Q = 3;                                      // The number of column in each matrix
+
+            int n = epsilonInput.Length;                     // the element number in input sequence (epsilonInput)
+            int N = n / (M * Q);                               // Total matrix number
+            List<int> inputList = new List<int>();          // this for convert strint to the integer list as 0 or 1 list
+
+            for (int i = 0; i < n; i++)                         // This for loop transfer elements of input sequence from epsilonInput to inputList. Actually convert string to the integere values
+            {
+                if (epsilonInput[i] == '1')
+                    inputList.Add(1);
+                else if (epsilonInput[i] == '0')
+                    inputList.Add(0);
+                else
+                    Console.WriteLine("Wrong input !! Input sequence have to be collecton of ones and zeros");
+            }
+
+            List<int> rankList = new List<int>();                           // This List will record the ranks of each matrix
+            rankList = ClassFindRankofMatrix.MethodFindRankofMatrix(inputList, N, M, Q);
+
+            // Now we have rankList that hold ranks of the metrices . Let^s move
+            int fullRankNumber = 0;                         // FM = the number of matrices with R = M (full rank)
+            int fullRankMinusOneNumber = 0;                     //FM-1 = the number of matrices with R = M-1 (full rank - 1)
+            int lowerRankNumber = 0;                            // N – FM	 - FM-1 = the number of matrices remaining
+
+            for( int j = 0 ; j < rankList.Count ; j++)
+            {
+                if (rankList[j] == Q)
+                    fullRankNumber = fullRankNumber + 1;
+                else if (rankList[j] == Q - 1)
+                    fullRankMinusOneNumber = fullRankMinusOneNumber + 1;
+                else
+                    lowerRankNumber = lowerRankNumber + 1; 
+            }
+
+            // Now we will calculate X^2 Obs.
+
+            double xSqrObs = 0;
+            xSqrObs = ((double)fullRankNumber - 0.2888 * (double)N) * ((double)fullRankNumber - 0.2888 * (double)N) / (0.2888 * (double)N) + xSqrObs;
+            xSqrObs = ((double)fullRankMinusOneNumber - 0.5776 * (double)N) * ((double)fullRankMinusOneNumber - 0.5776 * (double)N) / (0.5776 * (double)N) + xSqrObs;
+            xSqrObs = ((double)lowerRankNumber - 0.1336 * (double)N) * ((double)lowerRankNumber - 0.1336 * (double)N) / (0.1336 * (double)N) + xSqrObs;
+
+            // The final step is calculate P-Value = e^(-xSqrObs / 2 )
+
+            double pValue = Math.Pow(Math.E, (-1) * xSqrObs / 2);
+  
+            Console.WriteLine("P-Value is " + pValue);
+            if (pValue < 0.01)
+                Console.WriteLine("Since P-Value is smaller than 0.01 then the sequence is not random");
+            else
+                Console.WriteLine("Since P-Value is bigger than or equal to 0.01 then the sequence is random");
+
+
+            return;
+        }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BinaryMatrixRankTest
+{
+    class ClassFindRankofMatrix
+    {
+
+        static public List<int> MethodFindRankofMatrix (List<int> inputList, int N, int M, int Q )
+        {
+            List<List<float>> rowList = new List<List<float>>() ;                       // it is the list in a form rows. That means each row is an element of the rowList
+     
+            for (int i = 0 ; i < N * M ; i++ )                                      // This for loop will record all rows into the rowList                               
+            {
+                rowList.Add(new List<float>());
+           
+                for (int j = 0 ; j < Q ; j++)
+                {
+                    rowList[i].Add(inputList[i * Q + j]);
+                }
+            }
+
+            // Now we have collection of all matrix in a rows form. Let's start compute rank of the each matrix
+                        
+            List<int> rankList = new List<int>();                       // The rankList will record ranks of each matrix
+            int d = 0 ;                                                     // d will used any purpose when we need a vairable
+            float e, f;                                                      // for any purpose
+            for ( int a = 0 ; a < N ; a++ )             
+            {
+                for( int b = 0 ; b < Q ; b++ )
+                {
+                    for( int c = 0 ; c < M ; c++)
+                    {
+                        if (rowList[a * M + c][b] == 0)
+                            continue;
+                        d = a * M + c ;
+                        c++;
+                        for( ; c < M ; c++)
+                        {
+                            if (rowList[a * M + c][b] == 1)
+                            {
+                                for(int x = 0 ; x < Q ; x++)
+                                {
+                                    e = rowList[d][x] * (-1) + rowList[a * M + c][x];
+                                    rowList[a * M + c].RemoveAt(x);
+                                    rowList[a * M + c].Insert(x, e);
+                                }
+                                for(int y = 0 ; y < Q ; y++ )
+                                {
+                                    if(rowList[a * M + c ] [y] != 0)
+                                    {
+                                        e = rowList[a * M + c][y];
+                                        for( ; y < Q ; y++)
+                                        {
+                                            f = rowList[a * M + c][y]  / e ;
+                                            rowList[a * M + c].RemoveAt(y);
+                                            rowList[a * M + c].Insert(y, f);
+
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+
+                    }
+                    for(int z = 0 ; z < Q ; z++ )
+                    {
+                        if(rowList[d][z] == 1)
+                        {
+                            z++;
+                            for( ; z < Q ; z++ )
+                            {
+                                rowList[d].RemoveAt(z);
+                                rowList[d].Insert(z, 0);
+                            }
+                        }
+                    }
+
+                }
+
+            }
+
+            // Thanks God ! We obtaint row reduces echolon form but jut leading entries (in rowList). Note : It is enough to calculate rank of matrices
+            // Lets calculate ranks of metrices
+            int rankValues = 0;             // it is a count that will count the number of the leading entry number
+
+            for(int  i = 0 ; i < N ; i++)
+            {
+                for(int j =0 ; j < M ; j++ )
+                {
+                    for(int k = 0 ; k < Q ; k++ )
+                    {
+                        if (rowList[i * M + j][k] == 1)
+                            rankValues = rankValues + 1;
+                    }
+                }
+                rankList.Add(rankValues);
+                rankValues = 0;
+            }
+
+            return rankList;
+        }
+    }
+}
+
