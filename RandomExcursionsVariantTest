@@ -1,0 +1,156 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Random_Excursions_Variant_Test
+{
+    /*
+    The focus of this test is the total number of times that a particular state is visited (i.e., occurs) in a
+cumulative sum random walk. The purpose of this test is to detect deviations from the expected number
+of visits to various states in the random walk. This test is actually a series of eighteen tests (and
+conclusions), one test and conclusion for each of the states: -9, -8, …, -1 and +1, +2, …, +9. 
+
+        input : input sequence (string type)(epsilonInput) that we want to test
+
+        output : P-Values (type double) that will help us to decide the sequence is random or not
+    */
+    class Program
+    {            static void Main()
+        {
+                ClassTakeInputs.MethodTakeInputs();
+
+                return;
+        }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Random_Excursions_Variant_Test
+{
+    class ClassTakeInputs
+    {
+        public static void MethodTakeInputs()
+        {
+           
+            string epsilonInput = "0110110101";         // input sequence that we want to test
+            int n = epsilonInput.Length;                                          //length of the input
+            List<int> sumList = new List<int>();
+            int sum = 0;
+            for (int i = 0; i < n; i++)
+            {
+                if (epsilonInput[i] == '1')
+                    sum = sum + 1;
+                if (epsilonInput[i] == '0')
+                    sum = sum - 1;
+                sumList.Add(sum);
+            }
+            ClassProcess.MethodProcess(sumList, n);
+
+            return;
+        }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Random_Excursions_Variant_Test
+{
+    class ClassPValueCalculator
+    {
+        public static void MethodPValueCalculator(List<int> sortedList, List<int>valueList, int J)
+        {
+
+            List<double> listofPValues = new List<double>();
+            double pValue;
+            double sentValue;
+            for ( int i = 0 ; i<sortedList.Count ; i++)
+            {
+                sentValue = Math.Abs(valueList[i] - J) / Math.Sqrt(2 * J * (4 * Math.Abs(sortedList[i] )- 2));
+                listofPValues.Add(1 - ClassErrorFunction.Erf(sentValue));            
+            }         
+            for (int j = 0 ;j < listofPValues.Count ; j++)
+            {
+                Console.WriteLine(" P - Values is " + listofPValues[j]);
+                if (listofPValues[j] < 0.01)
+                    Console.WriteLine(" Since P-Value is small than 0.01 then sequence is not random");
+                else
+                    Console.WriteLine(" Since P-Value is bigger than or equal to 0.01 then sequence is random");
+
+            }
+            Console.WriteLine("For pValues which is bigger than 0.01 then sequence can accept random");
+
+            return;
+        }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Random_Excursions_Variant_Test
+{
+    class ClassProcess
+    {
+        public static void MethodProcess(List<int> sumList, int n)
+        {
+            sumList.Add(0);
+            sumList.Reverse();
+            sumList.Add(0);
+            sumList.Reverse();
+            int J = 0;                      // J is the total number of zeros in the sumList except first zero sumList[0]
+
+            for (int i = 1; i < n + 2; i++)
+            {
+                if (sumList[i] == 0)
+                    J = J + 1;
+            }            
+            List<int> sortedList = new List<int>();
+            List<int> valueList = new List<int>();
+            int frequency ;
+            bool control;
+            int a = sumList.Min();
+            int b = sumList.Max();
+            // it will show us there are how many same number like intensity
+            for ( ; a<=b ; a++)
+            {
+                sortedList.Add(a);
+                frequency = 0;
+                for (;;)
+                {                    
+                    control = sumList.Remove(a);
+                    if (control == true)
+                        frequency = frequency + 1;
+                    else
+                    {
+                        valueList.Add(frequency);
+                        break;
+                    }
+
+                }
+
+            }
+
+            if (sortedList.Contains(0) == true)
+            {
+                int indexNo;
+                indexNo = sortedList.IndexOf(0);
+                sortedList.RemoveAt(indexNo);
+                valueList.RemoveAt(indexNo);
+            }
+            ClassPValueCalculator.MethodPValueCalculator(sortedList, valueList,J);
+            return;
+        }
+    }
+}
+
