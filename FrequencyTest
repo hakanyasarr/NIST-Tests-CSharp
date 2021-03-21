@@ -1,0 +1,165 @@
+//using NIST.FrequencyTest;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace FrequencyTest
+{
+    /*
+        The focus of the test is the proportion of zeroes and ones for the entire sequence. The purpose of this test
+is to determine whether the number of ones and zeros in a sequence are approximately the same as would
+be expected for a truly random sequence. The test assesses the closeness of the fraction of ones to ½, that
+is, the number of ones and zeroes in a sequence should be about the same. All subsequent tests depend on
+the passing of this test. 
+
+  input :  (1 input : string epsilonInput) input is a sequence (type is string and consist ones and zeros) that we want to test and see the sequence is random or not
+
+  outbut : Output is P-Value(double type) that will help us to determine the sequence is random or not.
+	       if the output (P-Value) is smaller than 0.01 then the sequence is not random. Otherwise sequence is random
+    */
+
+    class Program
+    {
+        static void Main()
+        {
+            ClassTakeInputs.MethodTakeInputs();
+
+            return;
+        }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+
+namespace FrequencyTest
+{
+    class ClassTakeInputs
+    {
+        /*
+        This class takes input string and determine and put every element of string in a list one by one
+            */
+
+        public static void MethodTakeInputs()
+        {
+            List<int> inputList = new List<int>();
+            string epsilonInput = ("1011010101");               // The input sequence that we want to test for randomness
+            int n = epsilonInput.Length ;                                        //input size
+            for (int i = 0; i < n; i++)
+            {
+                if (epsilonInput[i] == '1')
+                    inputList.Add(1);
+                else if (epsilonInput[i] == '0')
+                    inputList.Add(0);
+                else
+                    Console.WriteLine("Wrong input !! input sequence elements must be collection of ones and zeros");
+            }
+            ClassProcess.MethodProcess(inputList, n);
+            return;
+        }
+    }
+}
+         
+            
+
+/*
+
+            float sObs;
+            Random randomNumber = new Random();
+            inputSize = randomNumber.Next(0, 1);
+
+            for (int m = 0; m < 6; m++)               //it is which number of 1 that we want to give from outside
+                inputList.Add(1);
+            for (int n = 0; n < 4; n++)                 //it is which number of 0 that we want to give from outside
+                inputList.Add(0);
+
+            for (int i = 0; i < inputSize; i++)            // which number of input than have to be random then they will add to input list
+            {
+                inputList.Add(randomNumber.Next(0, 2));
+            }
+            for (int k = 0; k < inputList.Count; k++)       // writing inputList
+                Console.Write(+inputList[k]);
+
+            for( int j=0 ; j < inputList.Count ; j++)               //it calculates Sn
+            {
+                input = inputList[j];
+                if (input == 1)
+                    sInputSize = sInputSize + 1;
+                else if (input == 0)
+                    sInputSize = sInputSize - 1;
+                else
+                    Console.Write("Wrong Input Data !");
+            }
+            sObs = (float)Math.Abs(sInputSize) / (float)Math.Sqrt(inputList.Count);       //calculate Sobs
+            Console.WriteLine("   \n total input number  "  +inputList.Count +"   Sn   "  + sInputSize +"   Sobs   " + sObs);
+            
+           
+            double errorX;
+            errorX = ClassErrorFunction.Erf((double)sObs / (double)Math.Sqrt(2));
+            errorX = 1 - errorX;            // it converts erf fuction value to erfc function
+           
+            
+            Console.WriteLine("P-Value     "+errorX);
+            if(errorX >= 0.01)
+            Console.WriteLine("Since P-Value is bigger than or equal to 0,01 then the process can accept random");
+                else
+            Console.WriteLine("Since P-Value is smaller than 0,01 then the process is not random");
+            //  float pValue = 0 ;
+            // pValue = System.Math.
+            //  pValue = (float)Math. (sObs * Math.Sqrt(2));
+
+
+
+            return;
+        }
+
+        private static double Erf()
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
+*/
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace FrequencyTest
+{
+    class ClassProcess
+    {
+        /*
+            This class consist of the process of the test.
+    */
+        public static void MethodProcess (List<int> inputList , int n)
+        {
+            int sN = 0;                                 // (sN)it sums the difference between 1 and 0 . we will add 1 for the element 1 and we will add -1 for the element 0. For example, for the input string "101" Sn = +1 -1 +1 =1
+            for(int i =0 ; i<n ; i++)                   // This for loop evaluat sN. 
+            {
+                if (inputList[i] == 1)
+                    sN = sN + 1;
+                else
+                    sN = sN - 1;
+            }
+
+            double sObs = Math.Abs(sN) / Math.Sqrt(n) ;                    // it is test statistics Sobs = |Sn| / Sqrt(2)
+            double pValue;                                                  // pValues is the output and that will help us to decide randomness
+            pValue = ClassErrorFunction.Erf(sObs / Math.Sqrt(2));           // it calculates error function (erf) value
+            pValue = 1 - pValue;                                            // Complement of erf (in other word erfc)
+            Console.WriteLine("pValue is equal to    " + pValue);           // it writes to the screen P-Value
+            if (pValue >= 0.01)                                                                         // This if else decide the sequence random or not according to the P-Value
+                Console.WriteLine("pValue is bigger than 0.01 so input sequence is random     " );
+            else
+                Console.WriteLine("pValue is smaller than 0.01 so input is not random     ");
+
+            return;
+        }
+    }
+}
