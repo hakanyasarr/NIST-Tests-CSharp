@@ -1,0 +1,216 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace OverlappingTemplateMatchingT
+{
+    class Program
+    {
+        /*
+        The focus of the Overlapping Template Matching test is the number of occurrences of pre-specified target
+strings. Both this test and the Non-overlapping Template Matching test of Section 2.7 use an m-bit
+window to search for a specific m-bit pattern. As with the test in Section 2.7, if the pattern is not found,
+the window slides one bit position. The difference between this test and the test in Section 2.7 is that
+when the pattern is found, the window slides only one bit before resuming the search. 
+
+            input : input sequence (string type) epsilonInput that we want to test
+                    input B (string type). The m-bit template to be matched. 
+                    input K (int type). The number of freedom.
+                    imput M (int type) . The number of elements in every block
+            output: P-Value that will help us to decide the input sequence is random or not
+
+    */
+        static void Main()
+        {
+            ClassTakeInputs.MethodTakeInputs();
+            return;
+        }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace OverlappingTemplateMatchingT
+{
+    class ClassTakeInputs
+    {
+        public static void MethodTakeInputs()
+        {
+            string epsilonInput = "10111011110110110100011100101110111110000101101001";             // input sequence
+            int n = epsilonInput.Length;                                 // The size of the input sequence
+            int K = 2;                  // The number of degrees of freedom
+            int M = 10;                     // The length in bits of a substring of ε to be tested. In other words, length of the each block
+            int N = n/M;                  // The number of independent blocks of n
+
+           string B = "11";            //The m-bit template to be matched
+            int m = B.Length;                  //The length in bits of the template – in this case, the length of the run of ones. 
+
+
+            List<int> inputList = new List<int>();
+            for( int i = 0 ; i<n ; i++ )
+            {
+                if (epsilonInput[i] == '1')
+                    inputList.Add(1);
+                else if (epsilonInput[i] == '0')
+                    inputList.Add(0);
+                else
+                    Console.WriteLine("Wrong input epsilonInput !! Input must be a collection of ones and zeros");
+            }
+
+            int count = 0;              // This count will count the number of B in a block
+            int lengtB = B.Count();          // it is the leng of m bit template. It is also  equal to m
+            int decimalValueB = 0;             // It represent the decimal equivalent of sequence B
+            List<int> bValueList = new List<int>();                         // This list wil record the B sequence elements
+            for (int k = 0; k < lengtB; k++)
+            {
+                if (B[k] == '1')
+                    bValueList.Add(1);
+                else if (B[k] == '0')
+                    bValueList.Add(0);
+                else
+                    Console.WriteLine("Wrong input B sequence !! Input must be a collection of ones and zeros");
+            }
+
+           
+
+            for( int j = 0 ; j<lengtB ; j++)                        // This for loop calculate decimal value of string B (B have ones and zeros only)
+            {
+                decimalValueB = decimalValueB + bValueList[j] *(int) Math.Pow(2, (double)(lengtB - 1 - j));
+            }
+
+
+
+            ClassProcess.MethodProcess(inputList, decimalValueB, M, N ,lengtB, m , K);
+
+
+
+
+
+            return;
+        }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace OverlappingTemplateMatchingT
+{
+    class ClassProcess
+    {
+        public static void MethodProcess(List<int> inputList, int decimalValueB, int M , int N , int lengthB, int m ,int K )
+        {
+            List<int> frequencyList = new List<int>() ;             // THis list will store frequency of the B sequence in input sequence for every block
+            frequencyList = ClassFindFrequency.MethodPFindFrequency(inputList, decimalValueB, M, N, lengthB);
+
+            double lamda, yu;               //Compute values for λ and η that will be used to compute the theoretical probabilities πi 
+            lamda = (double)(M - m + 1) / Math.Pow(2, m);
+            yu = lamda / 2;
+
+            List<double> preProportionList = new List<double>();
+            if (K == 2)
+            {
+                preProportionList.Add(0.324652);
+                preProportionList.Add(0.182617);
+                preProportionList.Add(0.142670);
+                preProportionList.Add(0.106645);
+                preProportionList.Add(0.077147);
+                preProportionList.Add(0.166269);
+
+            }
+            else
+            {
+                preProportionList.Add(0.364091);
+                preProportionList.Add(0.185659);
+                preProportionList.Add(0.139381);
+                preProportionList.Add(0.100571);
+                preProportionList.Add(0.070432);
+                preProportionList.Add(0.139865);
+            }
+
+
+            double xSqrObs = 0;
+
+            for (int a = 0 ; a<= 5 ; a++)
+            {
+                xSqrObs = xSqrObs + (frequencyList[a] - (double)N * preProportionList[a]) * (frequencyList[a] - (double)N * preProportionList[a]) / ((double)N * preProportionList[a]);
+            }
+
+            // Let's start to calculate P-Value from gamma functions
+            double pValue, pValue2;
+        
+            pValue = ClassGamma.Gamma((double)5 / (double)2);
+            pValue2 = ClassLowerGamma.incgamma((double)5 / (double) 2, (double)xSqrObs / 2);
+
+            pValue = (float)pValue2 / (float)pValue;                            // it is lower incomplete gamma value but we need upper incomplete gamma value.So take complement
+            pValue = 1 - pValue;                            // now we calculated P-Value
+
+
+
+            Console.WriteLine("P-Value is equal to   " + pValue);
+
+            if (pValue >= 0.01)
+            {
+                Console.WriteLine("Since pValue is bigger than or equal to 0.01 , then the process is random");
+            }
+            else
+                Console.WriteLine("Since pValue is smaller than 0.01 , then the process is not random");
+
+
+
+            return;
+        }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace OverlappingTemplateMatchingT
+{
+    class ClassFindFrequency
+    {
+        // This class will help us to find the frequency of the B sequence into all blocks in input sequence
+        public static List<int> MethodPFindFrequency (List<int> inputList, int decimalValueB, int M, int N, int lengthB)
+        {
+            int count ;                              // This count will count the number of sequence B in the sequence inputList  
+            int value;
+            List<int> frequencyList = new List<int>();
+            frequencyList.Add(0);
+            frequencyList.Add(0);
+            frequencyList.Add(0);
+            frequencyList.Add(0);
+            frequencyList.Add(0);
+            frequencyList.Add(0);
+            int change = 0;                 // We will use this variable to increase one element in frequencyList by one
+            for (int i = 0 ; i < N ; i++ )
+            {
+                count = 0 ;
+                for(int j = 0 ; j < M -lengthB+1 ; j++)
+                {
+                    value = 0;
+                    for(int k =0 ; k < lengthB ; k++ )
+                    {
+                        value = value + (int)Math.Pow(2, (double)(lengthB - 1 - k)) * inputList[ i * M + j + k ];
+                    }
+                    if (value == decimalValueB)
+                        count = count + 1 ;
+                }
+                change = frequencyList[count];
+                frequencyList.RemoveAt(count);
+                frequencyList.Insert(count, change+1) ;
+            }
+
+                return frequencyList;
+        }
+    }
+}
