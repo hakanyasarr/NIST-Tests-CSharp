@@ -1,0 +1,242 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Random_Excursions_Test
+{
+    /*
+    The focus of this test is the number of cycles having exactly K visits in a cumulative sum random walk.
+The cumulative sum random walk is derived from partial sums after the (0,1) sequence is transferred to
+the appropriate (-1, +1) sequence. A cycle of a random walk consists of a sequence of steps of unit length
+taken at random that begin at and return to the origin. The purpose of this test is to determine if the
+number of visits to a particular state within a cycle deviates from what one would expect for a random
+sequence. This test is actually a series of eight tests (and conclusions), one test and conclusion for each of
+the states: -4, -3, -2, -1 and +1, +2, +3, +4. 
+
+        input : input sequence (string type) (epsilonInput) that we want to test
+
+        output : output sequence (double type) that will help us to decide the sequence is random or not
+    */
+    class Program
+    {
+        static void Main()
+        {
+            ClassTakeInputs.MethodTakeInputs();
+
+            return;
+        }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Random_Excursions_Test
+{
+    class ClassTakeInputs
+    {
+        public static void MethodTakeInputs()
+        {
+        
+            string epsilonInput = "0110110101";         // input sequence that we want to test
+            int n = epsilonInput.Length;                  //length of the input
+            List<int> sumList = new List<int>();
+            List<int> inputList = new List<int>();
+            List<int> normalizedInputList = new List<int>();
+            int sum = 0;
+            for (int i = 0; i < n; i++)             // This for store elements of input in inputList
+            {
+                if (epsilonInput[i] == '1')
+                    inputList.Add(1);
+                else if (epsilonInput[i] == '0')
+                    inputList.Add(0);
+                else
+                    Console.WriteLine("Wrong input data. Input elements have to be 0 or 1");
+                
+            }
+            for (int j = 0; j < n; j++)         // This for assign X values for every input element. For examle for element 1 store 1 and for element 0 store -1
+            {
+                if (inputList[j] == 1)
+                    normalizedInputList.Add(1);
+                else 
+                    normalizedInputList.Add(-1);            
+            }
+            int count = 0;
+            for(int k = 0 ; k < n ; k++)            //Compute the partial sums Si of successively larger subsequences, each starting with X1. For example sumList[2] = normalizedInputLİst[0]+normalizedInputLİst[1]+normalizedInputLİst[2]
+            {
+                count = count + normalizedInputList[k];
+                sumList.Add(count + 0);
+            }
+
+          
+            sumList.Add(0);                                 // at 0 beginin and end of the sumList
+            sumList.Reverse();
+            sumList.Add(0);
+            sumList.Reverse();
+            ClassProcess.MethodProcess(sumList, n);
+
+            return;
+        }
+    }
+}using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Random_Excursions_Test
+{
+    class ClassProcess3
+    {
+        public static void MethodProcess3( List<List<int>> stateList, int J )
+        {
+            List<List<int>> stateFrequencyList = new List<List<int>>();
+
+            for (int i = 0; i < 8; i++)
+                stateFrequencyList.Add(new List<int>());
+            List<int> generalList = new List<int>() ;               // This list will used for general purposes
+            bool control;
+            int count = 0;
+
+            for (int k = 0 ; k<8 ; k++ )                            // This for loop and inside it creates table in part 6
+            {
+                generalList.Clear();
+                for (int m = 0; m < stateList.Count; m++)
+                    generalList.Add(stateList[m][k] + 0);
+                for ( int a = 0 ; a <=5  ; a++ )
+                {
+                    for( ; ; )
+                    {
+                        control = generalList.Contains(a);
+                        if (control == true)
+                        {
+                            count = count + 1;
+                            generalList.RemoveAt(generalList.IndexOf(a));
+                        }
+                        else
+                        {
+                            stateFrequencyList[k].Add(count + 0);
+                            count = 0;
+                            break;
+                        }
+
+                    }
+                  
+                }
+
+            }
+            ClassCalculateXSqrObs.MethodCalculateXSqrObs(stateFrequencyList, J);
+
+            return;
+        }
+    }
+}using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Random_Excursions_Test
+{
+    // This class will continue process. This class consist of process after step 5
+    class ClassProcess2
+    {
+        public static void MethodProcess2 (List<List<int>> cycleList , int J )
+        {
+
+            List<List<int>> stateList = new List<List<int>>();              //For each cycle and for each non-zero state value x having values –4 ≤ x ≤ -1 and 1 ≤ x ≤ 4,  compute the frequency of each x within each cycle.
+            List<int> generalList = new List<int>();                    // This list will be used for general purposes
+ 
+            for (int i = 0; i < cycleList.Count ; i++)                     // one for each cycle
+                stateList.Add(new List<int>());
+            bool control;                                       // Control value true or false
+            int count = 0;
+            for ( int k = 0 ; k<cycleList.Count ; k++)              // This for and inside them calculate state frequencies for each cyle and then record them  (it is step 5 of the test)
+            {
+                generalList.Clear();
+                for(int m = 0 ; m<cycleList[k].Count ; m++ )
+                {
+                    generalList.Add( cycleList[k][m] + 0);
+                }
+                for(int p = -4 ; p <= 4 ; p++)
+                {
+                    for( ; ; )
+                    {
+                        if (p == 0)
+                            break;
+                        control = generalList.Contains(p);
+                        if (control == true)
+                        {
+                            count = count + 1;
+                            generalList.RemoveAt(generalList.IndexOf(p));
+                        }
+                        else
+                        {          
+                            stateList[k].Add(0 + count);
+                            count = 0;                           
+                            break;
+                        }
+
+                    }
+
+                }
+
+            }
+
+            ClassProcess3.MethodProcess3(stateList , J);
+
+            return;
+        }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Random_Excursions_Test
+{
+    class ClassProcess
+    {
+        public static void MethodProcess(List<int> sumList , int n )
+        {
+
+            int J=-1 ;                      // J is the total number of zeros in the sumList except first zero sumList[0].   -1 means first zero is not a cycle
+            List<List<int>> cycleList = new List<List<int>>();           // This List will store indexes of the zero crossing points
+            List<int> indexZeroCrossingList = new List<int>();
+
+            for (int i = 0; i < n+2; i++)            // This for calculate J (the number of cycles)
+            {
+                if (sumList[i] == 0)
+                {
+                    J = J + 1;
+                    indexZeroCrossingList.Add(i);
+                }                   
+            }
+
+            for (int k = 0; k < J; k++)                 // This for creates empty cycles for real cyles
+                cycleList.Add(new List<int>());
+
+            for ( int m = 0 ; m <J ; m++ )                  // this loop record all cycles to the cycleList
+            {
+                for( int p =indexZeroCrossingList[m] ; p <= indexZeroCrossingList[m+1] ; p++ )
+                {
+                    cycleList[m].Add(sumList[p]);
+                }          
+            }
+                          
+     
+            ClassProcess2.MethodProcess2( cycleList , J ) ;
+
+
+            return;
+        }
+    }
+}
+
+
