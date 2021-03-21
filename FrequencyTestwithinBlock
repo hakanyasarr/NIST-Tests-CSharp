@@ -1,0 +1,140 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace FrequencyTestwithinBlock
+{
+    class Program
+    {
+        
+        /*
+    The focus of the test is the proportion of ones within M-bit blocks. The purpose of this test is to determine
+whether the frequency of ones in an M-bit block is approximately M/2, as would be expected under an
+assumption of randomness. For block size M=1, this test degenerates to test 1, the Frequency (Monobit)
+test. 
+    input  : In this test we have 2 inputs. 
+             One of them epsilonInput (string type) that is the sequence (consist of ones and zeros) we want to test (it is random sequence or not)
+             The other input is M ( int type ). M represent the length of each block. As we understood , in this test we will divide our input sequence into blocks
+
+    output : The output is P-Value that help us to determine input sequence is random or not.
+             If P-Value is smaller than 0.01 , the the sequence is not random. Otherwise the sequence is random.
+
+*/
+        static void Main()
+        {
+
+            ClassTakeInputs.MethodTakeInputs("01011101010", 3);
+
+            return;        
+        }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace FrequencyTestwithinBlock
+{
+    // This class takes inputs 
+    class ClassTakeInputs
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="epsilonInput">input sequence (input sequence must be collection of ones and zeros) that we want to test</param>
+        /// <param name="M">input length of the each block. This means every block have M number of element</param>
+        public static void MethodTakeInputs(string epsilonInput, int M)
+        {
+
+            //string epsilonInput = ("0110011010");                       // input sequence (input sequence must be collection of ones and zeros) that we want to test
+            //int M = 3;                                                  // input length of the each block. This means every block have M number of element
+
+            int n = epsilonInput.Length;                                 // input size. n shows us the total element number of input sequence
+            int N = (n / M);                                            //the total block number in our sequence. 
+
+            List<int> inputList = new List<int>();              // this list will hold the elements of epsilonInput as integers
+
+            for (int i = 0; i < n; i++)                         // This for loop transfer the elemens in epsilonInput to the inputList
+            {
+                if (epsilonInput[i] == '1')
+                    inputList.Add(1);
+                else if (epsilonInput[i] == '0')
+                    inputList.Add(0);
+                else
+                    Console.WriteLine("Wrong input data, input member can be zero or one");
+            }
+            ClassProcess.MethodProcess(inputList, n, N, M);
+
+
+            return;
+        }
+
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace FrequencyTestwithinBlock
+{
+    class ClassProcess
+    {
+        // This class nearly consist of the all process of the test.
+
+        public static void MethodProcess(List<int> inputList, int n, int N, int M)
+        {
+
+            List<float> proportionalityList = new List<float>();             //this list will hold the proportionality of the 1 for each block
+            float count;                                   // count will calculate ones in each block then to calculate proportionality
+
+            for (int i = 0; i < N; i++)                     // This for loop evaluate proportionality of each block and then record them proportionalityList
+            {
+                count = 0;
+                for (int j = 0; j < M; j++)
+                {
+                    if (inputList[j + M * i] == 1)
+                        count = count + 1;
+                }
+                proportionalityList.Add((float)count / (float)M);
+
+            }
+            // Until now, we calculated the propotionality of each blocks. Let move on with compute X^2 statistics
+
+
+            double xSqrObs = 0;                                            // x square obs in other words X^2 statistics
+
+            for (int k = 0; k < N; k++)                              // This for loop calculate  a part of the X^2 statistics 
+            {
+                xSqrObs = xSqrObs + (proportionalityList[k] - 0.5) * (proportionalityList[k] - 0.5);
+            }
+
+            xSqrObs = 4 * M * xSqrObs;                                      // it is the compelete X^2 statistics (xSqrObs)
+
+            // Now there is only one step that is calculating P-Value. For this purpose we have to use incomplete upper gamma function. P-value = igamc ( N/2, xSqrObs / 2 )
+
+            double gammaValue, lowerGammaValue , pValue ;
+            gammaValue = ClassGamma.Gamma ((double )N/2);
+            lowerGammaValue = ClassLowerGamma.incgamma((double) N / 2 , (double)xSqrObs / 2);
+            gammaValue = lowerGammaValue / gammaValue;                                                      // Now we evaluate lower incomplete gamma 
+            gammaValue = 1 - gammaValue;                                                                   // it is upper incomplete gamma value (complement of th lower incomlete gamma)
+            pValue = gammaValue;                                                                            // The output (p-Value)
+            Console.WriteLine("Gamma N/2  (same with P-Value )is   " + pValue);
+            
+            if (gammaValue >= 0.01)                                                                                           // Using P-Value we will decide the sequence is random or not
+                Console.WriteLine("Since p-Value is bigger than or equal to  0.01 then the sequence is random");
+            else
+                Console.WriteLine("Since p-Value is smaller than 0.01 then the sequence is not random");
+
+
+
+
+            return;
+        }
+    }
+}
